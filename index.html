@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Juego: Adivina el número</title>
+  <style>
+    body{font-family:Arial, sans-serif;background:#f2f2f2;color:#222;margin:0;padding:0;display:flex;align-items:center;justify-content:center;height:100vh}
+    .game-box{background:#fff;padding:20px 25px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.15);width:360px}
+    h1{margin-top:0;font-size:22px;text-align:center;color:#9E1E05}
+    p.description{font-size:14px;margin-bottom:15px;color:#444;text-align:center}
+    .info{margin-bottom:10px;font-size:14px}
+    .status{margin:12px 0;padding:10px;border-radius:6px;min-height:36px;background:#eaeaea;font-size:14px}
+    .status.ok{background:#a5f1f8;color:#065f46}
+    .status.error{background:#fee2e2;color:#991b1b}
+    .inputs{display:flex;gap:6px;margin-bottom:10px}
+    input[type=number]{flex:1;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:14px}
+    button{padding:8px 12px;border:none;border-radius:6px;background:#03c624;color:#fff;cursor:pointer;font-size:14px}
+    button:disabled{background:#aaa;cursor:not-allowed}
+    button.secondary{background:#ccc;color:#000}
+    .history{margin-top:8px;font-size:13px}
+    .history span{display:inline-block;background:#f4f4f4;padding:4px 6px;margin:2px;border-radius:4px}
+  </style>
+</head>
+<body>
+  <div class="game-box">
+    <h1>Adivina el número</h1>
+    <p class="description">Adivina el número que estoy pensando, se encuentra entre el <strong>1</strong> y el <strong>100</strong>. Te daré pistas.</p>
+
+    <div class="info">Intentos que quedan: <span id="left">10</span>
+
+    <div class="status" id="status">¡Suerte!</div>
+
+    <div class="inputs">
+      <input type="number" id="guess" min="1" max="100" placeholder="Tu número" />
+      <button id="check">Intentar</button>
+      <button id="reset" class="secondary">Nuevo</button>
+    </div>
+
+    <div class="history"><strong>Números utilizados:</strong> <span id="history"></span></div>
+  </div>
+
+  <script>
+    (()=>{
+      const MAX=10;
+      let secreto, intentos, usados, lista;
+      const guess=document.getElementById('guess');
+      const status=document.getElementById('status');
+      const left=document.getElementById('left');
+      const used=document.getElementById('used');
+      const history=document.getElementById('history');
+      const check=document.getElementById('check');
+      const reset=document.getElementById('reset');
+
+      function iniciar(){
+        secreto=Math.floor(Math.random()*100)+1;
+        intentos=MAX;
+        usados=0;
+        lista=[];
+        left.textContent=intentos;
+        used.textContent=usados;
+        history.innerHTML='';
+        status.textContent='Juego iniciado. ¡Adivina el número!';
+        status.className='status';
+        guess.disabled=false;
+        check.disabled=false;
+        guess.value='';
+        guess.focus();
+        console.log('Número secreto:',secreto);
+      }
+
+      function mostrar(msj,tipo){
+        status.textContent=msj;
+        status.className='status ' + (tipo||'');
+      }
+
+      function terminar(ganar){
+        guess.disabled=true;
+        check.disabled=true;
+        if(ganar){
+          mostrar('¡Lo hiciste! El número era '+secreto,'ok');
+        }else{
+          mostrar('Suerte para la próxima. El número correcto era '+secreto,'error');
+        }
+      }
+
+      function probar(){
+        const n=Number(guess.value);
+        if(!n||n<1||n>100){mostrar('Ingresa un número válido entre 1 y 100.','error');return;}
+        if(lista.includes(n)){mostrar('Ya probaste '+n+'.','error');return;}
+
+        lista.push(n);
+        history.innerHTML=lista.map(x=>`<span>${x}</span>`).join('');
+        usados++;
+        intentos--;
+        left.textContent=intentos;
+        used.textContent=usados;
+
+        if(n===secreto){terminar(true);return;}
+        if(intentos===0){terminar(false);return;}
+        if(n<secreto){mostrar('Estás muy debajo. Te quedan '+intentos+' intentos.');}
+        else{mostrar('Estas muy arriba. Te quedan '+intentos+' intentos.');}
+        guess.value='';
+        guess.focus();
+      }
+
+      check.addEventListener('click',probar);
+      guess.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();probar();}});
+      reset.addEventListener('click',iniciar);
+
+      iniciar();
+    })();
+  </script>
+</body>
+</html>
